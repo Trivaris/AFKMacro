@@ -23,6 +23,8 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.json)
+            implementation(libs.opencv)
+            implementation(libs.jna)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

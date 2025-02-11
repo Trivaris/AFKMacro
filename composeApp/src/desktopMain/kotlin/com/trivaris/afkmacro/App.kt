@@ -1,5 +1,6 @@
 package com.trivaris.afkmacro
 
+import afkmacro.composeapp.generated.resources.Res
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.MaterialTheme
@@ -18,38 +19,42 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.trivaris.afkmacro.backend.Emulator
+import com.sun.security.jgss.InquireSecContextPermission
 import com.trivaris.afkmacro.components.LoggingDisplay
+import com.trivaris.afkmacro.sender.Robot
+import com.trivaris.afkmacro.sender.Robot.screenshot
+import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import javax.imageio.ImageIO
 
 @Composable
 @Preview
 fun App() {
     val logList = remember { mutableStateListOf<String>() }
 
-    LaunchedEffect(Unit) {
-        System.setOut(object : PrintStream(object : OutputStream() {
-            override fun write(b: Int) {}
-
-            override fun write(b: ByteArray, off: Int, len: Int) {
-                val log = String(b, off, len).trim()
-                if (log.isNotEmpty()) {
-                    val timestamp = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
-                    logList.add("[$timestamp] $log")
-
-                    if (logList.size > 500) {
-                        logList.removeFirst()
-                    }
-                }
-            }
-        }) {
-
-        })
-    }
+//    LaunchedEffect(Unit) {
+//        System.setOut(object : PrintStream(object : OutputStream() {
+//            override fun write(b: Int) {}
+//
+//            override fun write(b: ByteArray, off: Int, len: Int) {
+//                val log = String(b, off, len).trim()
+//                if (log.isNotEmpty()) {
+//                    val timestamp = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
+//                    logList.add("[$timestamp] $log")
+//
+//                    if (logList.size > 500) {
+//                        logList.removeFirst()
+//                    }
+//                }
+//            }
+//        }) {
+//
+//        })
+//    }
 
 
     MaterialTheme {
@@ -71,9 +76,13 @@ fun App() {
                     Column {
                         Text("Commands", color = Color.White)
 
-                        //Image(painter = painterResource(Res.drawable.), null)
+                        Button( onClick = {
+                            Robot.clickFoundImage("debug.png")
+                        }) { Text("Send Screenshot") }
 
-                        Button( onClick = { Emulator.connectADB() } ) { Text("Connect") }
+                        Button( onClick = {
+                            println("[OUT] Clicked!!!!")
+                        }) { Text("Debug") }
 
                     }
 

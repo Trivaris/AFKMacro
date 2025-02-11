@@ -1,9 +1,7 @@
 package com.trivaris.afkmacro
 
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import com.trivaris.afkmacro.backend.Config
 
 fun main() = application {
     Window(

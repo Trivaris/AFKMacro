@@ -9,6 +9,6 @@ fun main() = application {
         title = "AFKMacro",
     ) {
         Config.load()
-        App()
+        app()
     }
 }

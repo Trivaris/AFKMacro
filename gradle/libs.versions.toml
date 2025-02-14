@@ -6,7 +6,7 @@ kotlinx-coroutines = "1.10.1"
 material3 = "1.2.0"
 json = "20210307"
 opencv = "4.9.0-0"
-jna = "3.0.9"
+tesseract = "5.14.0"
 
 [libraries]
 androidx-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
@@ -15,7 +15,7 @@ kotlinx-coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-co
 compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 json = { module = "org.json:json", version.ref = "json" }
 opencv = { module = "org.openpnp:opencv", version.ref = "opencv" }
-jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
+tesseract = { module = "net.sourceforge.tess4j:tess4j", version.ref = "tesseract" }
 
 [plugins]
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }

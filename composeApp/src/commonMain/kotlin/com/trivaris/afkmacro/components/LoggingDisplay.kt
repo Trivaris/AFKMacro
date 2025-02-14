@@ -21,6 +21,25 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun LoggingDisplay(logs: List<String>) {
     val lazyListState = rememberLazyListState()
+    //    LaunchedEffect(Unit) {
+//        System.setOut(object : PrintStream(object : OutputStream() {
+//            override fun write(b: Int) {}
+//
+//            override fun write(b: ByteArray, off: Int, len: Int) {
+//                val log = String(b, off, len).trim()
+//                if (log.isNotEmpty()) {
+//                    val timestamp = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
+//                    logList.add("[$timestamp] $log")
+//
+//                    if (logList.size > 500) {
+//                        logList.removeFirst()
+//                    }
+//                }
+//            }
+//        }) {
+//
+//        })
+//    }
 
     Column(
         modifier = Modifier

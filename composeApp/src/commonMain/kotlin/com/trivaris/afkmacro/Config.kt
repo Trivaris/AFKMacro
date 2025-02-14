@@ -5,6 +5,8 @@ import java.io.File
 
 object Config {
     var port = 7555
+    var delay = 2000
+    var maxTries = 3
 
     fun load() {
         val file = File("AFKMacroConfig.json")
@@ -12,6 +14,8 @@ object Config {
         if (!file.exists()) {
             val defaultConfig = JSONObject().apply {
                 put("port", port)
+                put("delay", delay )
+                put("maxTries", maxTries)
             }
 
             file.writeText(defaultConfig.toString())

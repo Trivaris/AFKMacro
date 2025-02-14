@@ -1,57 +1,101 @@
 package com.trivaris.afkmacro
 
-import androidx.compose.runtime.currentCompositeKeyHash
-import androidx.compose.ui.draganddrop.DragData
+import com.trivaris.afkmacro.scrcpy.Emulator
+import net.sourceforge.tess4j.ITessAPI
+import net.sourceforge.tess4j.ITessAPI.TessPageIteratorLevel
+import net.sourceforge.tess4j.ITesseract
+import net.sourceforge.tess4j.Tesseract
+import net.sourceforge.tess4j.Word
+import net.sourceforge.tess4j.util.ImageHelper
 import org.opencv.core.Core
-import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.core.Point
+import org.opencv.core.Rect
+import org.opencv.core.Scalar
+import org.opencv.core.Size
 import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
-import java.awt.image.BufferedImage
-import java.awt.image.DataBufferByte
-import java.awt.image.DataBufferInt
+import java.awt.Rectangle
 import java.io.File
-import java.io.FileInputStream
+import java.util.Date
 import javax.imageio.ImageIO
 
-fun findImage(base: Mat, template: Mat): Point? {
+fun findImage(
+    template: Mat,
+    base: Mat = Emulator.screenshot(),
+    region: Rect? = null
+): Point? {
     val result = Mat()
     Imgproc.matchTemplate(base, template, result, Imgproc.TM_CCOEFF_NORMED)
 
     val minMaxLoc = Core.minMaxLoc(result)
     val bestMatchPoint = minMaxLoc.maxLoc
 
-    return if (minMaxLoc.maxVal >= 0.8)
-        bestMatchPoint as Point
+    val loc = if (minMaxLoc.maxVal >= 0.8)
+       bestMatchPoint as Point
     else null
-}
 
-fun BufferedImage.toMat(): Mat {
-    val mat = Mat(height, width, CvType.CV_8UC3)
-    var data = when (raster.dataBuffer) {
-        is DataBufferByte -> {(raster.dataBuffer as DataBufferByte).data}
-        is DataBufferInt -> {
-            val intData = (raster.dataBuffer as DataBufferInt).data
-            val byteArray = ByteArray(intData.size * 4)
-            for (i in intData.indices) {
-                val value = intData[i]
-                byteArray[i] = (value shr 24).toByte()
-                byteArray[i * 4] = (value shr 16).toByte()
-                byteArray[i * 4 + 1] = (value shr 8).toByte()
-                byteArray[i * 4 + 2] = (value shr 24).toByte()
-                byteArray[i * 4 + 3] = value.toByte()
-            }
-            byteArray
+    return if (region == null)
+        loc
+    else if (loc == null)
+        null
+    else if (loc.inside(region)) loc
+    else null
+
+}
+fun findImage(file: File,       base: Mat = Emulator.screenshot(), region: Rect? = null): Point? = findImage(Imgcodecs.imread(file.absolutePath), base, region)
+fun findImage(filePath: String, base: Mat = Emulator.screenshot(), region: Rect? = null): Point? = findImage(File("img/$filePath.png"), base, region)
+
+fun findText(text: String,
+             base: Mat = Emulator.screenshot(),
+             region: Rect? = null
+): Point? {
+    val gray = Mat()
+    Imgproc.cvtColor(base, gray, Imgproc.COLOR_RGB2GRAY)
+
+    val binary = Mat()
+    Imgproc.threshold(gray, binary, 0.0, 255.0, Imgproc.THRESH_BINARY + Imgproc.THRESH_OTSU)
+
+    val tempFile = File("temp/${Date().time}-temp.png")
+    Imgcodecs.imwrite(tempFile.absolutePath, binary)
+
+    val tesseract: ITesseract  = Tesseract()
+    tesseract.setDatapath(File("tesseract").absolutePath)
+    tesseract.setLanguage("eng")
+
+    val foundWords = tesseract.getWords(ImageIO.read(tempFile), TessPageIteratorLevel.RIL_WORD )
+
+    repeat(Config.maxTries) {
+        val currentWord = foundWords.firstOrNull { it.text == text }
+        currentWord?.let {
+            return it.boundingBox.midPoint()
         }
-        else -> throw IllegalArgumentException("Unsupported data buffer type ${raster.dataBuffer.javaClass.name}")
     }
-    mat.put(0, 0, data)
-    return mat
+
+    return null
 }
 
-fun BufferedImage.save(filePath: String) =
-    ImageIO.write(this, "png", File(filePath))
+fun resizeIfPossible(image: Mat, newWidth: Int = 1080, newHeight: Int = 1920): Mat? {
+    if (newWidth == image.width() && newHeight == image.height())
+        return image
 
-fun loadImage(filePath: String): Mat =
-    ImageIO.read(File(filePath)).toMat()
+    if (image.height() == 0 || image.width() == 0|| newWidth == 0 || newHeight == 0)
+        return  null
+
+    val currentAspectRatio = image.width() / image.height()
+    val targetAspectRatio = newWidth / newHeight
+
+    if (targetAspectRatio == currentAspectRatio) {
+        val resized = Mat()
+        Imgproc.resize(image, resized, Size(newWidth.toDouble(), newHeight.toDouble()))
+
+        if (resized == Mat())
+            return null
+        return resized
+    }
+
+    return null
+}
+
+fun Rectangle.midPoint(): Point =
+    Point(x + width / 2.0, y + height / 2.0)

@@ -24,7 +24,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.json)
             implementation(libs.opencv)
-            implementation(libs.jna)
+            implementation(libs.tesseract)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

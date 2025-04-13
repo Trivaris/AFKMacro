@@ -1,12 +1,9 @@
 package com.trivaris.afkmacro
 
 import com.trivaris.afkmacro.scrcpy.Emulator
-import net.sourceforge.tess4j.ITessAPI
 import net.sourceforge.tess4j.ITessAPI.TessPageIteratorLevel
 import net.sourceforge.tess4j.ITesseract
 import net.sourceforge.tess4j.Tesseract
-import net.sourceforge.tess4j.Word
-import net.sourceforge.tess4j.util.ImageHelper
 import org.opencv.core.Core
 import org.opencv.core.Mat
 import org.opencv.core.Point
@@ -19,6 +16,25 @@ import java.awt.Rectangle
 import java.io.File
 import java.util.Date
 import javax.imageio.ImageIO
+
+fun findAllImage(
+    template: Mat,
+    base: Mat = Emulator.screenshot(),
+    region: Rect? = null
+): MutableList<Point> {
+    val results = mutableListOf<Point>()
+    val maskColor = Scalar(0.0, 0.0, 0.0)
+    while (true) {
+        val point = findImage(template, base, region)
+        if (point == null) break
+        results.add(point)
+        val roi = Rect(point, template.size())
+        Imgproc.rectangle(base, roi.tl(), roi.br(), maskColor, -1)
+    }
+    return results
+}
+fun findAllImage(file: File,       base: Mat = Emulator.screenshot(), region: Rect? = null): MutableList<Point> = findAllImage(Imgcodecs.imread(file.absolutePath), base, region)
+fun findAllImage(filePath: String, base: Mat = Emulator.screenshot(), region: Rect? = null): MutableList<Point> = findAllImage(File("img/$filePath.png"), base, region)
 
 fun findImage(
     template: Mat,
@@ -99,3 +115,17 @@ fun resizeIfPossible(image: Mat, newWidth: Int = 1080, newHeight: Int = 1920): M
 
 fun Rectangle.midPoint(): Point =
     Point(x + width / 2.0, y + height / 2.0)
+
+fun Rect.midPoint(): Point =
+    Point(x + width / 2.0, y + height / 2.0)
+
+fun Mat.midPoint(): Point? {
+    val point = findImage(this)
+    if (point != null)
+        return Rect(point, point + Point(width().toDouble(), height().toDouble())).midPoint()
+    return null
+}
+
+operator fun Point.plus(other: Point): Point {
+    return Point(x + other.x, y + other.y)
+}

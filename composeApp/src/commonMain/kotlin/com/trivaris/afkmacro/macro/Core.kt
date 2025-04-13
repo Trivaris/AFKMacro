@@ -8,9 +8,10 @@ import kotlin.time.Duration.Companion.milliseconds
 
 object Core {
 
-    suspend fun toMainScreen(delay: Int): Boolean {
+    suspend fun toMainScreen(delay: Int = Config.delay): Boolean {
         var tries = 0
         while (tries <= Config.maxTries) {
+            println("Trying...")
             if (Locations.MAIN.visible) return true
             if (!back()) tries++
             else tries = 0

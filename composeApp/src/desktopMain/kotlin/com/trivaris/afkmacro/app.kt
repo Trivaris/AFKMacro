@@ -71,8 +71,8 @@ fun app() {
                         }) { if(!isConnected.value) Text("Connect") else Text("Disconnect") }
 
                         Button( onClick = {
-                            GlobalScope.launch { HonorMacro.openHonor() }
-                        }) { Text("Open Honor Duel") }
+                            GlobalScope.launch { findAllImage("tbd/select_artifact", Imgcodecs.imread(File("out/screen.png").absolutePath)) }
+                        }) { Text("Testing") }
 
                         Button( onClick = {
                             val screenshot = Emulator.screenshot()

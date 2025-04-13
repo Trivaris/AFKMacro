@@ -1,5 +1,6 @@
 package com.trivaris.afkmacro.scrcpy
 
+import com.trivaris.afkmacro.Config
 import com.trivaris.afkmacro.Config.port
 import com.trivaris.afkmacro.findImage
 import com.trivaris.afkmacro.findText
@@ -8,10 +9,12 @@ import nu.pattern.OpenCV
 import org.opencv.core.Mat
 import org.opencv.core.Point
 import org.opencv.imgcodecs.Imgcodecs
+import java.io.BufferedReader
 import java.io.File
+import java.io.InputStream
+import java.io.InputStreamReader
 import java.util.Date
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 object Emulator {
 
@@ -30,6 +33,12 @@ object Emulator {
     }
 
     fun connect(): ConnectionState {
+        val testProcess = ProcessBuilder("adb", "devices").start()
+
+        val devices = testProcess.outputAsList().apply { removeAt(0) }
+        if (devices.any { it.contains("emulator") })
+            return ConnectionState.CONNECTED
+
         val connectProcess = ProcessBuilder("adb", "connect", "127.0.0.1:$port")
             .redirectErrorStream(true)
             .start()
@@ -77,10 +86,18 @@ object Emulator {
         delay(delay.milliseconds)
         return tapProcess.exitValue() == 0
     }
-    suspend fun tap(point: Point?,      delay: Int = 0): Boolean = point?.let { tap(it.x, it.y, delay) }                == true
-    suspend fun tap(image: Mat?,        delay: Int = 0): Boolean = image?.let { findImage(it)?.let { tap(it, delay) } } == true
-    suspend fun tap(file: File?,        delay: Int = 0): Boolean = file?.takeIf { it.exists() }?.let { tap(Imgcodecs.imread(it.absolutePath), delay) } == true
-    suspend fun tap(filePath: String?,  delay: Int = 0): Boolean = filePath?.let { tap(File("img/$it.png"), delay) }    == true
-    suspend fun tapText(text: String,   delay: Int = 0): Boolean = tap(findText(text), delay) == true
+    suspend fun tap(point: Point?,      delay: Int = Config.delay): Boolean = point?.let { tap(it.x, it.y, delay) }                == true
+    suspend fun tap(image: Mat?,        delay: Int = Config.delay): Boolean = image?.let { findImage(it)?.let { tap(it, delay) } } == true
+    suspend fun tap(file: File?,        delay: Int = Config.delay): Boolean = file?.takeIf { it.exists() }?.let { tap(Imgcodecs.imread(it.absolutePath), delay) } == true
+    suspend fun tap(filePath: String?,  delay: Int = Config.delay): Boolean = filePath?.let { tap(File("img/$it.png"), delay) }    == true
+    suspend fun tapText(text: String,   delay: Int = Config.delay): Boolean = tap(findText(text), delay) == true
 
+}
+
+fun Process.outputAsList(): MutableList<String> {
+    val reader = BufferedReader(InputStreamReader(this.inputStream))
+    val outputLines = mutableListOf<String>()
+    reader.forEachLine { if(it != "") outputLines.add(it) }
+    this.waitFor()
+    return outputLines
 }
